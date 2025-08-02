@@ -1,2 +1,172 @@
 # Ak
-Tesla coil stimulation 
+Here’s a complete outline and code template for a **Tesla coil simulation (Python, circuit/field simulation)** with these features:
+
+- **Parameter input from the command line**
+- **Field visualization (magnetic field)**
+- **Comprehensive documentation**
+
+---
+
+## 1. Directory Structure
+
+```
+tesla-coil-simulation/
+├── main.py
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 2. main.py
+
+```python
+import numpy as np
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Tesla Coil RLC Simulation with Field Visualization')
+    parser.add_argument('--L1', type=float, default=20e-6, help='Primary inductance (H)')
+    parser.add_argument('--L2', type=float, default=80e-3, help='Secondary inductance (H)')
+    parser.add_argument('--C1', type=float, default=10e-9, help='Primary capacitance (F)')
+    parser.add_argument('--C2', type=float, default=50e-12, help='Secondary capacitance (F)')
+    parser.add_argument('--R1', type=float, default=0.2, help='Primary resistance (Ohm)')
+    parser.add_argument('--R2', type=float, default=1000, help='Secondary resistance (Ohm)')
+    parser.add_argument('--M', type=float, default=2e-4, help='Mutual inductance (H)')
+    parser.add_argument('--V0', type=float, default=5000, help='Initial voltage on C1 (V)')
+    parser.add_argument('--tmax', type=float, default=0.0005, help='Simulation time (s)')
+    parser.add_argument('--field', action='store_true', help='Plot magnetic field visualization')
+    return parser.parse_args()
+
+def circuit(t, y, args):
+    I1, Vc1, I2, Vc2 = y
+    dI2_dt_val = (Vc2 - args.R2 * I2) / args.L2
+    dI1_dt = (Vc1 - args.R1 * I1 - args.M * dI2_dt_val) / args.L1
+    dVc1_dt = -I1 / args.C1
+    dI2_dt = (Vc2 - args.R2 * I2 - args.M * dI1_dt) / args.L2
+    dVc2_dt = -I2 / args.C2
+    return [dI1_dt, dVc1_dt, dI2_dt, dVc2_dt]
+
+def plot_currents(t_eval, I1, I2):
+    plt.figure(figsize=(10, 6))
+    plt.plot(t_eval * 1e3, I1, label='Primary Current (I1)')
+    plt.plot(t_eval * 1e3, I2, label='Secondary Current (I2)')
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Current (A)')
+    plt.title('Coupled RLC Circuit Simulation (Tesla Coil)')
+    plt.legend()
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+
+def plot_magnetic_field(I2_peak):
+    # Visualize magnetic field in the plane around the coil
+    mu0 = 4 * np.pi * 1e-7
+    N = 100  # coil turns
+    R = 0.1  # coil radius (m)
+    x = np.linspace(-0.2, 0.2, 100)
+    y = np.linspace(-0.2, 0.2, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = 0  # field in XY plane at center
+    r = np.sqrt(X**2 + Y**2 + Z**2)
+    Bz = mu0 * N * I2_peak * R**2 / (2 * (r**3 + 1e-12))  # add epsilon to avoid division by zero
+    plt.figure(figsize=(6, 5))
+    plt.contourf(X, Y, Bz, 50, cmap='viridis')
+    plt.colorbar(label='Magnetic Field Bz (T)')
+    plt.title('Magnetic Field around Secondary Coil (Peak)')
+    plt.xlabel('x (m)')
+    plt.ylabel('y (m)')
+    plt.axis('equal')
+    plt.show()
+
+def main():
+    args = parse_args()
+    y0 = [0, args.V0, 0, 0]
+    t_span = (0, args.tmax)
+    t_eval = np.linspace(*t_span, 2000)
+    sol = solve_ivp(lambda t, y: circuit(t, y, args), t_span, y0, t_eval=t_eval, method='RK45')
+    I1, Vc1, I2, Vc2 = sol.y
+    plot_currents(t_eval, I1, I2)
+    if args.field:
+        I2_peak = np.max(np.abs(I2))
+        plot_magnetic_field(I2_peak)
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## 3. requirements.txt
+
+```
+numpy
+scipy
+matplotlib
+```
+
+---
+
+## 4. README.md
+
+```markdown
+# Tesla Coil RLC Simulation
+
+This Python project simulates a Tesla coil as a coupled RLC circuit and optionally visualizes the magnetic field around the secondary coil.
+
+## Features
+
+- Command-line parameter input for circuit values (inductance, capacitance, resistance, etc.)
+- Visualizes primary and secondary coil currents
+- Optional magnetic field visualization around the secondary coil
+
+## Usage
+
+1. Install dependencies:
+
+   ```
+   pip install -r requirements.txt
+   ```
+
+2. Run with default parameters:
+
+   ```
+   python main.py
+   ```
+
+3. Customize parameters via command line (example):
+
+   ```
+   python main.py --L1 25e-6 --L2 90e-3 --C1 12e-9 --R2 1500 --V0 6000 --tmax 0.001
+   ```
+
+4. Add `--field` to visualize the magnetic field:
+
+   ```
+   python main.py --field
+   ```
+
+## Parameters
+
+- `--L1`: Primary inductance (H)
+- `--L2`: Secondary inductance (H)
+- `--C1`: Primary capacitance (F)
+- `--C2`: Secondary capacitance (F)
+- `--R1`: Primary resistance (Ohm)
+- `--R2`: Secondary resistance (Ohm)
+- `--M`: Mutual inductance (H)
+- `--V0`: Initial voltage on C1 (V)
+- `--tmax`: Simulation time (s)
+- `--field`: Plot magnetic field visualization
+
+## License
+
+MIT License
+```
+
+---
+
+**This template is ready to use as a GitHub repository.**  
+If you’d like more advanced field visualization (e.g., vector fields or 3D), or integration with Jupyter notebooks, let me know!
