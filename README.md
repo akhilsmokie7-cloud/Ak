@@ -1,4 +1,4 @@
-# Ak
+READ.ME Ak
 Here’s a complete outline and code template for a **Tesla coil simulation (Python, circuit/field simulation)** with these features:
 
 - **Parameter input from the command line**
