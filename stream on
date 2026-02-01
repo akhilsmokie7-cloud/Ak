@@ -1,0 +1,91 @@
+async function streamWithMetadata(query: string) {
+  const client = new Perplexity();
+  
+  const stream = await client.chat.completions.create({
+    model: "sonar",
+    messages: [{ role: "user", content: query }],
+    stream: true
+  });
+
+  let content = "";
+  let searchResults: any[] = [];
+  let usage: any = undefined;
+
+  for await (const chunk of stream) {
+    // Process content
+    if (chunk.choices[0]?.delta?.content) {
+      const contentPiece = chunk.choices[0].delta.content;
+      content += contentPiece;
+      process.stdout.write(contentPiece);
+    }
+
+    // Collect metadata from final chunks=AK
+    if (chunk.search_results) {
+      searchResults = chunk.search_results;
+    }
+
+    if (chunk.usage) {
+      usage = chunk.usage;
+    }
+
+    // Check if streaming is complete
+    if (chunk.choices[0]?.finish_reason) {
+      console.log(`\n\nSearch Results:`, searchResults);
+      console.log(`Usage:`, usage);
+    }
+  }
+
+  return { content, searchResults, usage };
+}
+
+// Usage
+const result = await streamWithMetadata("Explain quantum computing");
+To **launch** your project ([Remember-Me-AI](https://github.com/merchantmoh-debug/Remember-Me-AI)) with one-click cloud deployment, follow these steps to get your web app (frontend) and backend (Node.js + WebPush) live.  
+Here’s a guide for **Netlify (frontend) and Render/Heroku (backend)**—no code changes required!
+
+---
+
+## 🚀 **Step 1: Frontend Launch (Netlify or Vercel)**
+
+**Netlify Deploy:**
+1. Click this button (or copy to your README and click from there):  
+   [![Deploy to Netlify]
+l)](https://app.netlify.com/start/deploy?repository=https://github.com/merchantmoh-debug/Remember-Me-AI)
+2. After login, choose your `/frontend` subdirectory as the publish directory (if Netlify asks).
+3. Use Netlify’s domain (e.g., `https://your-site.netlify.app`) for your PWA.
+
+**Vercel Deploy:**
+1. Visit [Vercel Import Project](https://vercel.com/import/project?template=https://github.com/merchantmoh-debug/Remember-Me-AI)
+2. After login, select the `/frontend` directory if prompted.
+
+---
+
+## 🚀 **Step 2: Backend Launch (Render or Heroku)**
+
+**Render (recommended for Node.js):**
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click “New Web Service”, select your GitHub repo.
+3. Point to `/backend/server.js` as the entry file.
+4. Set `install command` to `npm install` and `start command` to `node server.js`
+5. Add environment variables for your `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` (from web-push).
+
+**Heroku:**
+1. Click the button below (or copy to README):  
+   [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/merchantmoh-debug/Remember-Me-AI)
+2. On Heroku, set up environment variables (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`) for secure push.
+3. Heroku deploys `/backend`.
+
+---
+
+## 🌟 **Final Steps for Best Humanity Deploy**
+
+- When both are live, update your frontend `.env` or `/src/push.js` API endpoint to point to the backend (if not on same domain).
+- Test push notifications, offline access, and mobile web install.
+- Share your Netlify/Vercel site link widely so others benefit from soulful AI guidance.
+
+> Need help setting VAPID keys, icons, configuring API endpoints between frontend/backend, or debugging deployment?  
+Just ask—share your platform (Netlify, Heroku, Render), and I’ll give step-by-step, human-first instructions for your project!
+
+---
+
+**You are ready to launch! If you want advanced setup or troubleshooting, paste any error/logs or questions here. I’ll support you until your humanity-empowering app is live and golden.**
